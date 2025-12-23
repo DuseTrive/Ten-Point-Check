@@ -9,7 +9,7 @@ class CircleProgress {
 
     init() {
         this.createSVG();
-        this.updateProgress(12);
+        this.updateProgress(12, 12);
     }
 
     createSVG() {
@@ -55,10 +55,9 @@ class CircleProgress {
 
     updateProgress(score, maxScore = 12) {
         console.log('🔄 CircleProgress.updateProgress called with:', { score, maxScore });
-        this.scoreValue = Math.max(0, Math.min(score, maxScore));
+        this.scoreValue = score;  // Allow scores above 12 with Exceeds SOE bonus
         this.maxScore = maxScore;
         
-        const percentage = (this.scoreValue / this.maxScore) * 100;
         const progressArc = this.container.querySelector('.progress-fill-arc');
         const scoreNumber = this.container.querySelector('.score-number');
         const scoreMax = this.container.querySelector('.score-max');
@@ -72,7 +71,19 @@ class CircleProgress {
         if (progressArc && scoreNumber) {
             const radius = 76; // Calculated from SVG
             const circumference = Math.PI * radius;
-            const offset = circumference - (percentage / 100) * circumference;
+            let offset;
+            let percentage;
+            
+            // If score is 0 or negative, keep circle empty
+            if (score <= 0) {
+                offset = circumference; // Full offset = empty circle
+                percentage = 0;
+                console.log('⚠️ Score is 0 or negative, keeping circle empty');
+            } else {
+                // Calculate percentage based on max 12 (but allow overflow for bonus)
+                percentage = Math.min((this.scoreValue / this.maxScore) * 100, 100);
+                offset = circumference - (percentage / 100) * circumference;
+            }
             
             console.log('📊 Circle calculation:', { percentage, circumference, offset });
             
@@ -188,13 +199,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Override updateDecision to work with new elements and include waiting state
+// Override updateDecision to work with new elements and include new logic
 setTimeout(() => {
     console.log('🔄 Setting up updateDecision override...');
     const originalUpdateDecision = window.updateDecision;
     
     if (originalUpdateDecision) {
-        window.updateDecision = function(score, primaryScore, secondaryScore) {
+        window.updateDecision = function(score, primaryScore, secondaryScore, fields) {
             console.log('🎯 updateDecision called with:', { score, primaryScore, secondaryScore });
             const scoreRecommendationSection = document.querySelector('.score-recommendation-section');
             const finalDecision = document.getElementById('final_decision');
@@ -203,15 +214,24 @@ setTimeout(() => {
             let decision, explanation_text, cssClass;
             
             // Check if any fields are empty (waiting for input)
-            const fields = {
-                fault_status: document.getElementById('fault_status').value,
-                specifications: document.getElementById('specifications').value,
-                physical_condition: document.getElementById('physical_condition').value,
-                warranty_status: document.getElementById('warranty_status').value
-            };
+            if (!fields) {
+                fields = {
+                    fault_status: document.getElementById('fault_status').value,
+                    specifications: document.getElementById('specifications').value,
+                    physical_condition: document.getElementById('physical_condition').value,
+                    warranty_status: document.getElementById('warranty_status').value
+                };
+            }
             
             const hasEmptyFields = Object.values(fields).some(value => !value);
+            
+            // Check mandatory conditions for donation
+            const passesHardwareTesting = fields.fault_status === "Passes hardware testing";
+            const isReasonableCondition = fields.physical_condition === "Reasonable";
+            
             console.log('⏳ Has empty fields in updateDecision:', hasEmptyFields);
+            console.log('🔧 Passes Hardware Testing:', passesHardwareTesting);
+            console.log('📦 Is Reasonable Condition:', isReasonableCondition);
             
             if (hasEmptyFields) {
                 decision = "Waiting for device";
@@ -221,9 +241,13 @@ setTimeout(() => {
                 decision = "REUSE";
                 explanation_text = "Device meets all criteria for continued use";
                 cssClass = "decision-reuse";
-            } else if (score >= 8) {
+            } else if (score >= 8 && score < 10 && passesHardwareTesting && isReasonableCondition) {
                 decision = "DONATE";
-                explanation_text = "Device suitable for donation or secondary use";
+                explanation_text = "Device suitable for donation (8-9 pts, passes tests, reasonable condition)";
+                cssClass = "decision-donate";
+            } else if (score >= 5 && score < 8 && passesHardwareTesting && isReasonableCondition) {
+                decision = "DONATE";
+                explanation_text = "Device suitable for donation (5-7 pts, passes tests, reasonable condition)";
                 cssClass = "decision-donate";
             } else {
                 decision = "E-WASTE";

@@ -5,14 +5,14 @@ let deviceDatabase = {
     brands: {}
 };
 
-// Scoring matrices - Points to DEDUCT from 12
+// Scoring matrices - Points to DEDUCT from base points
 const scoring = {
     fault_status: {
         "Passes hardware testing": 0,
         "Fails hardware testing": 3
     },
     specifications: {
-        "Exceeds SOE": 0,
+        "Exceeds SOE": -1,  // Adds 1 bonus point
         "Meets SOE": 0,
         "Below SOE": 3
     },
@@ -218,11 +218,11 @@ function calculateScore() {
     if (hasEmptyFields) {
         console.log('🔄 Setting waiting state...');
         // Reset to initial state - show maximum points
-        document.getElementById('fault_points').textContent = '3';
-        document.getElementById('spec_points').textContent = '3';
-        document.getElementById('physical_points').textContent = '2';
-        document.getElementById('warranty_points').textContent = '2';
-        document.getElementById('age_points').textContent = '2';
+        document.getElementById('fault_points').textContent = '3 pts';
+        document.getElementById('spec_points').textContent = '3 pts';
+        document.getElementById('physical_points').textContent = '2 pts';
+        document.getElementById('warranty_points').textContent = '2 pts';
+        document.getElementById('age_points').textContent = '2 pts';
         
         document.getElementById('primary_total').textContent = '8/8 pts';
         document.getElementById('secondary_total').textContent = '4/4 pts';
@@ -237,23 +237,26 @@ function calculateScore() {
         }
         
         console.log('🎯 Calling updateDecision with waiting state');
-        updateDecision(12, 8, 4);
+        updateDecision(12, 8, 4, fields);
         return;
     }
     
-    // Calculate device age points to deduct
+    // Calculate device age deduction
     const ageText = document.getElementById('device_age').value;
     let ageDeduction = 0;
+    let extraAgeDeduction = 0;
+    
     if (ageText && ageText !== 'Unknown') {
         const ageYears = parseFloat(ageText);
-        const specs = document.getElementById('specifications').value;
         
-        if (ageYears >= 4 && specs === "Below SOE") {
+        // Base deduction: if 4+ years, deduct 2 points
+        if (ageYears >= 4) {
             ageDeduction = 2;
-        } else if (ageYears >= 4) {
-            ageDeduction = 2;
-        } else {
-            ageDeduction = 0;
+        }
+        
+        // Extra deduction: for each year beyond 5
+        if (ageYears > 5) {
+            extraAgeDeduction = ageYears - 5;
         }
     }
     
@@ -263,38 +266,60 @@ function calculateScore() {
     const physicalDeduction = scoring.physical_condition[fields.physical_condition] || 0;
     const warrantyDeduction = scoring.warranty_status[fields.warranty_status] || 0;
     
-    console.log('🔢 Deductions:', { faultDeduction, specDeduction, physicalDeduction, warrantyDeduction, ageDeduction });
+    console.log('🔢 Deductions:', { faultDeduction, specDeduction, physicalDeduction, warrantyDeduction, ageDeduction, extraAgeDeduction });
     
     // Calculate final scores (starting from max points)
     const faultFinalPoints = 3 - faultDeduction;
-    const specFinalPoints = 3 - specDeduction;
+    const specFinalPoints = 3 - specDeduction;  // Can be 4 if Exceeds SOE (-1 deduction = +1 bonus)
     const physicalFinalPoints = 2 - physicalDeduction;
     const warrantyFinalPoints = 2 - warrantyDeduction;
-    const ageFinalPoints = 2 - ageDeduction;
+    const ageFinalPoints = 2 - ageDeduction;  // Base age points with deduction
     
     console.log('🎯 Final points:', { faultFinalPoints, specFinalPoints, physicalFinalPoints, warrantyFinalPoints, ageFinalPoints });
     
-    // Update display
-    document.getElementById('fault_points').textContent = faultFinalPoints;
-    document.getElementById('spec_points').textContent = specFinalPoints;
-    document.getElementById('physical_points').textContent = physicalFinalPoints;
-    document.getElementById('warranty_points').textContent = warrantyFinalPoints;
-    document.getElementById('age_points').textContent = ageFinalPoints;
+    // Update display with deductions shown clearly
+    document.getElementById('fault_points').textContent = faultDeduction > 0 
+        ? `${faultFinalPoints} pts (-${faultDeduction})`
+        : `${faultFinalPoints} pts`;
+    
+    document.getElementById('spec_points').textContent = specDeduction < 0 
+        ? `${specFinalPoints} pts (+${Math.abs(specDeduction)})`
+        : specDeduction > 0 
+            ? `${specFinalPoints} pts (-${specDeduction})`
+            : `${specFinalPoints} pts`;
+    
+    document.getElementById('physical_points').textContent = physicalDeduction > 0 
+        ? `${physicalFinalPoints} pts (-${physicalDeduction})`
+        : `${physicalFinalPoints} pts`;
+    
+    document.getElementById('warranty_points').textContent = warrantyDeduction > 0 
+        ? `${warrantyFinalPoints} pts (-${warrantyDeduction})`
+        : `${warrantyFinalPoints} pts`;
+    
+    document.getElementById('age_points').textContent = ageDeduction > 0 
+        ? (extraAgeDeduction > 0 
+            ? `${ageFinalPoints} pts (-${ageDeduction}, -${extraAgeDeduction} extra)`
+            : `${ageFinalPoints} pts (-${ageDeduction})`)
+        : (extraAgeDeduction > 0 
+            ? `${ageFinalPoints} pts (-${extraAgeDeduction} extra)`
+            : `${ageFinalPoints} pts`);
     
     // Calculate totals
     const primaryTotal = faultFinalPoints + specFinalPoints + physicalFinalPoints;
     const secondaryTotal = warrantyFinalPoints + ageFinalPoints;
-    const grandTotal = primaryTotal + secondaryTotal;
+    let grandTotal = primaryTotal + secondaryTotal - extraAgeDeduction;
     
-    console.log('📊 Totals:', { primaryTotal, secondaryTotal, grandTotal });
+    console.log('📊 Totals:', { primaryTotal, secondaryTotal, grandTotal, extraAgeDeduction });
     
     document.getElementById('primary_total').textContent = `${primaryTotal}/8 pts`;
     document.getElementById('secondary_total').textContent = `${secondaryTotal}/4 pts`;
-    document.getElementById('total_score').textContent = `${grandTotal}/12`;
+    document.getElementById('total_score').textContent = extraAgeDeduction > 0 
+        ? `${grandTotal}/12 (-${extraAgeDeduction} age)`
+        : `${grandTotal}/12`;
     
-    updateDecision(grandTotal, primaryTotal, secondaryTotal);
+    updateDecision(grandTotal, primaryTotal, secondaryTotal, fields);
     
-    // Update circle progress with new score
+    // Update circle progress with new score (base is 12, but can go higher with bonus)
     if (window.circleProgress) {
         console.log('🔄 Updating circle progress to:', grandTotal);
         window.circleProgress.updateProgress(grandTotal, 12);
@@ -303,7 +328,7 @@ function calculateScore() {
     }
 }
 
-function updateDecision(score, primaryScore, secondaryScore) {
+function updateDecision(score, primaryScore, secondaryScore, fields) {
     const scoreDisplay = document.getElementById('score_display');
     const decisionDisplay = document.getElementById('decision_display');
     const finalDecision = document.getElementById('final_decision');
@@ -312,37 +337,71 @@ function updateDecision(score, primaryScore, secondaryScore) {
     let decision, explanation_text, cssClass;
     
     // Check if any fields are empty (waiting for input)
-    const fields = {
-        fault_status: document.getElementById('fault_status').value,
-        specifications: document.getElementById('specifications').value,
-        physical_condition: document.getElementById('physical_condition').value,
-        warranty_status: document.getElementById('warranty_status').value
-    };
+    if (!fields) {
+        fields = {
+            fault_status: document.getElementById('fault_status').value,
+            specifications: document.getElementById('specifications').value,
+            physical_condition: document.getElementById('physical_condition').value,
+            warranty_status: document.getElementById('warranty_status').value
+        };
+    }
     
     const hasEmptyFields = Object.values(fields).some(value => !value);
+    
+    // Check mandatory conditions for donation
+    const passesHardwareTesting = fields.fault_status === "Passes hardware testing";
+    const isReasonableCondition = fields.physical_condition === "Reasonable";
+    
+    // DEBUG LOGGING
+    console.log('🎯 Decision Logic Debug:');
+    console.log('  Score:', score, 'Primary:', primaryScore, 'Secondary:', secondaryScore);
+    console.log('  Fault Status:', fields.fault_status);
+    console.log('  Physical Condition:', fields.physical_condition);
+    console.log('  Passes Hardware Testing?', passesHardwareTesting);
+    console.log('  Is Reasonable Condition?', isReasonableCondition);
     
     if (hasEmptyFields) {
         decision = "Waiting for device";
         explanation_text = "Enter device information to begin assessment";
         cssClass = "decision-waiting";
+        console.log('  ✅ Decision: WAITING (empty fields)');
     } else if (score >= 10 && primaryScore >= 6 && secondaryScore >= 2) {
         decision = "REUSE";
         explanation_text = "Device meets all criteria for continued use";
         cssClass = "decision-reuse";
-    } else if (score >= 8) {
+        console.log('  ✅ Decision: REUSE');
+    } else if (score >= 8 && score < 10 && passesHardwareTesting && isReasonableCondition) {
         decision = "DONATE";
-        explanation_text = "Device suitable for donation or secondary use";
+        explanation_text = "Device suitable for donation (8-9 pts, passes tests, reasonable condition)";
         cssClass = "decision-donate";
+        console.log('  ✅ Decision: DONATE (8-9 range)');
+    } else if (score >= 5 && score < 8 && passesHardwareTesting && isReasonableCondition) {
+        decision = "DONATE";
+        explanation_text = "Device suitable for donation (5-7 pts, passes tests, reasonable condition)";
+        cssClass = "decision-donate";
+        console.log('  ✅ Decision: DONATE (5-7 range)');
     } else {
         decision = "E-WASTE";
         explanation_text = "Device requires proper electronic waste disposal";
         cssClass = "decision-ewaste";
+        console.log('  ✅ Decision: E-WASTE');
     }
     
-    scoreDisplay.className = `bg-white border-2 p-6 rounded-md text-center ${cssClass}`;
-    decisionDisplay.className = `border-2 rounded-md p-6 text-center fade-in ${cssClass}`;
-    finalDecision.textContent = decision;
-    explanation.textContent = explanation_text;
+    if (scoreDisplay) {
+        scoreDisplay.className = `bg-white border-2 p-6 rounded-md text-center ${cssClass}`;
+    }
+    
+    if (decisionDisplay) {
+        decisionDisplay.className = `border-2 rounded-md p-6 text-center fade-in ${cssClass}`;
+    }
+    
+    if (finalDecision) {
+        finalDecision.textContent = decision;
+    }
+    
+    if (explanation) {
+        explanation.textContent = explanation_text;
+    }
 }
 
 // Export Functions
