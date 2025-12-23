@@ -1,5 +1,7 @@
 # 📊 Device Assessment Tool - 10 Point Check
 
+![GIF](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHR3djN6eDJlZmN3eHBuYmdseDh5N2s4OHZna3F5ZnZ2MDY3NDdhdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oKIPnAiaMCws8nOsE/giphy.gif)
+
 A comprehensive web application for evaluating laptop/PC devices using a standardized 10-point assessment system with integrated database management.
 
 Accesses via: https://dusetrive.github.io/Ten-Point-Check/
