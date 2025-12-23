@@ -37,7 +37,7 @@ This tool helps assess devices for **REUSE**, **DONATE**, or **E-WASTE** decisio
 ## 🚀 **How to Use**
 
 ### **1. Web Application**
-- Open `index.html` in your web browser
+- Run "Start-WebServer.ps1" 
 - Or serve via HTTP server: `python -m http.server 8000`
 - Fill in device information and complete assessment
 - Get automatic REUSE/DONATE/E-WASTE recommendation
@@ -142,7 +142,7 @@ This tool helps assess devices for **REUSE**, **DONATE**, or **E-WASTE** decisio
 
 ### **Quick Start**
 1. **Download/clone** the project
-2. **Open `index.html`** in your browser
+2. **RUN Start-WebServer.ps1 to start and open webservice
 3. **Start assessing devices** immediately
 4. **Use sample data** already in the database
 
