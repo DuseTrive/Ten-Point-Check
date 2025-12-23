@@ -1,0 +1,8 @@
+Logo folder created - place your logo file here.
+
+Recommended formats:
+- logo.png (for web)
+- logo.svg (scalable vector)
+- favicon.ico (browser icon)
+
+The logo should work well with dark purple and neon color theme.

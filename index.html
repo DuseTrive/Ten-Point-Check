@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Assessment Tool - 10 Point Check</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style/styles.css">
+    <link rel="shortcut icon" href="icon/logo.png" type="image/png">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        .pixel-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: #0a0a1a;
+        }
+        
+        .pixel {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        /* Add subtle grid overlay */
+        .pixel-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(100, 77, 237, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 77, 237, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="main-container">
+        <div class="app-wrapper">
+            
+            <!-- Header Section -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="logo-section">
+                        <div class="logo-container">
+                            <img src="icon/logo.png" alt="Logo" class="app-logo" onerror="this.style.display='none'">
+                            <div class="logo-fallback">
+                                <i data-lucide="zap" class="logo-icon"></i>
+                            </div>
+                        </div>
+                        <div class="header-text">
+                            <h1 class="app-title">Device Assessment Tool</h1>
+                            <p class="app-subtitle">10-Point Professional Evaluation System</p>
+                        </div>
+                    </div>
+
+                </div>
+            </header>
+
+            <!-- Main Content Grid -->
+            <main class="main-content">
+                
+                <!-- Left Panel - Device Information -->
+                <section class="input-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i data-lucide="wrench" class="panel-icon"></i>
+                            Device Information
+                        </h2>
+                        <div class="progress-indicator">
+                            <div class="progress-bar" id="form_progress"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        
+                        <!-- Device Identification - Two columns -->
+                        <div class="form-section">
+                            <h3 class="section-title">Device Identification</h3>
+                            
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Serial Number</span>
+                                    </label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="serial_number" class="form-input" 
+                                               placeholder="Enter serial number">
+                                        <i data-lucide="hash" class="input-icon"></i>
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Asset Tag</span>
+                                    </label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="asset_tag" class="form-input" 
+                                               placeholder="Enter asset tag">
+                                        <i data-lucide="tag" class="input-icon"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Device Selection - Two columns -->
+                        <div class="form-section">
+                            <h3 class="section-title">Device Selection</h3>
+                            
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Device Brand</span>
+                                        <span class="label-required">Required</span>
+                                    </label>
+                                    <div class="dropdown-container">
+                                        <div class="input-wrapper">
+                                            <input type="text" id="device_brand" class="form-input dropdown-input" 
+                                                   placeholder="Select brand (Dell, HP, Apple...)"
+                                                   oninput="filterBrands()" onfocus="showBrandDropdown()" 
+                                                   onblur="hideBrandDropdown()" onchange="onBrandChange()">
+                                            <i data-lucide="laptop" class="input-icon"></i>
+                                            <i data-lucide="chevron-down" class="dropdown-arrow"></i>
+                                        </div>
+                                        <div id="brand_dropdown" class="dropdown-menu">
+                                            <!-- Populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Device Model</span>
+                                        <span class="label-required">Required</span>
+                                    </label>
+                                    <div class="dropdown-container">
+                                        <div class="input-wrapper">
+                                            <input type="text" id="device_model" class="form-input dropdown-input" 
+                                                   placeholder="Select model (Latitude 7440...)"
+                                                   oninput="filterModels()" onfocus="showModelDropdown()" 
+                                                   onblur="hideModelDropdown()" onchange="onModelChange()">
+                                            <i data-lucide="settings" class="input-icon"></i>
+                                            <i data-lucide="chevron-down" class="dropdown-arrow"></i>
+                                        </div>
+                                        <div id="model_dropdown" class="dropdown-menu">
+                                            <!-- Populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Device Information - Two columns -->
+                        <div class="form-section">
+                            <h3 class="section-title">Device Information</h3>
+                            
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Manufacturing Year</span>
+                                    </label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="manufacturing_date" class="form-input" 
+                                               placeholder="Enter year (e.g., 2022)" 
+                                               onchange="onManufacturingDateChange()">
+                                        <i data-lucide="calendar" class="input-icon"></i>
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Device Age</span>
+                                    </label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="device_age" class="form-input" readonly>
+                                        <i data-lucide="clock" class="input-icon"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden elements for script compatibility -->
+                            <div style="display: none;">
+                                <div id="detection_confidence"></div>
+                                <div id="detection_source"></div>
+                            </div>
+                        </div>
+
+                        <!-- Warranty Status Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">Warranty Information</h3>
+                            
+                            <div class="warranty-toggle-section">
+                                <div class="warranty-options">
+                                    <div class="warranty-option" id="no_warranty_option">
+                                        <input type="radio" id="no_warranty" name="warranty" value="Out of Warranty" onchange="setWarranty('Out of Warranty')">
+                                        <label for="no_warranty" class="warranty-label">
+                                            <i data-lucide="x-circle" class="warranty-icon"></i>
+                                            <span class="warranty-text">No Warranty</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="warranty-option" id="under_warranty_option">
+                                        <input type="radio" id="under_warranty" name="warranty" value="Under Warranty" onchange="setWarranty('Under Warranty')">
+                                        <label for="under_warranty" class="warranty-label">
+                                            <i data-lucide="shield-check" class="warranty-icon"></i>
+                                            <span class="warranty-text">Under Warranty</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="warranty_status" value="">
+                            </div>
+                        </div>
+
+                        <!-- Assessment Criteria -->
+                        <div class="form-section">
+                            <h3 class="section-title">Assessment Criteria</h3>
+                            
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Physical Condition</span>
+                                        <span class="label-required">Required</span>
+                                    </label>
+                                    <div class="select-wrapper">
+                                        <select id="physical_condition" class="form-select" onchange="calculateScore()">
+                                            <option value="" disabled selected hidden>Select condition</option>
+                                            <option value="Not Reasonable">Not Reasonable</option>
+                                            <option value="Reasonable">Reasonable</option>
+                                        </select>
+                                        <i data-lucide="chevron-down" class="select-arrow"></i>
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label class="input-label">
+                                        <span class="label-text">Hardware Testing</span>
+                                        <span class="label-required">Required</span>
+                                    </label>
+                                    <div class="select-wrapper">
+                                        <select id="fault_status" class="form-select" onchange="calculateScore()">
+                                            <option value="" disabled selected hidden>Select status</option>
+                                            <option value="Passes hardware testing">Passes all tests</option>
+                                            <option value="Fails hardware testing">Fails testing</option>
+                                        </select>
+                                        <i data-lucide="chevron-down" class="select-arrow"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">
+                                    <span class="label-text">Specifications vs SOE</span>
+                                    <span class="label-required">Required</span>
+                                </label>
+                                <div class="select-wrapper">
+                                    <select id="specifications" class="form-select" onchange="calculateScore()">
+                                        <option value="" disabled selected hidden>Select specification level</option>
+                                        <option value="Exceeds SOE">Exceeds SOE</option>
+                                        <option value="Meets SOE">Meets SOE</option>
+                                        <option value="Below SOE">Below SOE</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right Panel - Results -->
+                <section class="results-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i data-lucide="bar-chart-3" class="panel-icon"></i>
+                            Assessment Results
+                        </h2>
+                    </div>
+
+                    <div class="results-grid">
+                        
+                        <!-- Combined Score & Recommendation -->
+                        <div class="score-recommendation-section">
+                            <div class="score-circle-container">
+                                <div id="score_circle_container"></div>
+                                
+                                <div class="recommendation-result">
+                                    <div class="recommendation-badge" id="final_decision">
+                                        <i data-lucide="search" class="decision-icon"></i>
+                                        <span class="decision-text">Waiting for device</span>
+                                    </div>
+                                    <p class="recommendation-explanation" id="decision_explanation">
+                                        Enter device information to begin assessment
+                                    </p>
+                                    
+                                    <div class="action-buttons">
+                                        <button class="action-btn primary-btn" onclick="copyResults()">
+                                            <i data-lucide="clipboard" class="btn-icon"></i>
+                                            Copy Results
+                                        </button>
+                                        <button class="action-btn secondary-btn" onclick="resetForm()">
+                                            <i data-lucide="rotate-ccw" class="btn-icon"></i>
+                                            Reset
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Score Breakdown -->
+                        <div class="score-breakdown-section">
+                            <div class="factor-group unified-factors">
+                                <div class="factor-items">
+                                    <div class="factor-item">
+                                        <span class="factor-name">Hardware Testing</span>
+                                        <div class="factor-points">
+                                            <span id="fault_points" class="points-value">3</span>
+                                            <span class="points-max">/3</span>
+                                        </div>
+                                    </div>
+                                    <div class="factor-item">
+                                        <span class="factor-name">Specifications</span>
+                                        <div class="factor-points">
+                                            <span id="spec_points" class="points-value">3</span>
+                                            <span class="points-max">/3</span>
+                                        </div>
+                                    </div>
+                                    <div class="factor-item">
+                                        <span class="factor-name">Physical Condition</span>
+                                        <div class="factor-points">
+                                            <span id="physical_points" class="points-value">2</span>
+                                            <span class="points-max">/2</span>
+                                        </div>
+                                    </div>
+                                    <div class="factor-item">
+                                        <span class="factor-name">Warranty Status</span>
+                                        <div class="factor-points">
+                                            <span id="warranty_points" class="points-value">2</span>
+                                            <span class="points-max">/2</span>
+                                        </div>
+                                    </div>
+                                    <div class="factor-item">
+                                        <span class="factor-name">Device Age</span>
+                                        <div class="factor-points">
+                                            <span id="age_points" class="points-value">2</span>
+                                            <span class="points-max">/2</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden elements for script compatibility -->
+                            <div style="display: none;">
+                                <span id="total_score">12/12</span>
+                                <span id="primary_total">8/8 pts</span>
+                                <span id="secondary_total">4/4 pts</span>
+                                <div id="score_display"></div>
+                                <div id="decision_display"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <div class="footer-content">
+                    <p class="footer-text">
+                        <i data-lucide="shield" class="footer-icon"></i>
+                        Professional Device Assessment Tool - Version 2.0
+                    </p>
+                    <div class="footer-stats">
+                        <span class="footer-stat">Database: Active</span>
+                        <span class="footer-stat">Status: Online</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script/script.js"></script>
+    <script src="script/circle-progress.js"></script>
+    <script src="script/clipboard-manager.js"></script>
+    
+    <!-- Pixel Background Animation -->
+    <div id="pixel-background" class="pixel-background"></div>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Initialize clipboard manager
+        const clipboardManager = new ClipboardManager();
+        
+        // Pixel Background Animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('pixel-background');
+            const colors = ['#8a2be2', '#00bfff', '#ff69b4', '#7fffd4', '#ffa500'];
+            const shapes = ['circle', 'square', 'triangle'];
+            
+            function createPixel() {
+                const pixel = document.createElement('div');
+                const size = Math.random() * 15 + 5;
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                pixel.className = 'pixel';
+                pixel.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    border-radius: ${shape === 'circle' ? '50%' : '0'};
+                    clip-path: ${shape === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none'};
+                `;
+                
+                container.appendChild(pixel);
+                animatePixel(pixel);
+            }
+            
+            function animatePixel(element) {
+                anime({
+                    targets: element,
+                    translateX: () => anime.random(-100, 100),
+                    translateY: () => anime.random(-100, 100),
+                    rotate: () => anime.random(0, 360),
+                    scale: [0, 1, 0],
+                    opacity: [0, 0.6, 0],
+                    duration: () => anime.random(4000, 12000),
+                    easing: 'easeInOutSine',
+                    complete: () => {
+                        element.remove();
+                        createPixel();
+                    }
+                });
+            }
+            
+            // Create initial pixels
+            for (let i = 0; i < 25; i++) {
+                createPixel();
+            }
+            
+            // Add interactive click effect
+            document.addEventListener('click', (e) => {
+                const burst = document.createElement('div');
+                burst.className = 'pixel';
+                burst.style.cssText = `
+                    width: 10px;
+                    height: 10px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    left: ${e.clientX}px;
+                    top: ${e.clientY}px;
+                    transform: translate(-50%, -50%);
+                    border-radius: 50%;
+                    opacity: 0;
+                `;
+                container.appendChild(burst);
+                
+                anime({
+                    targets: burst,
+                    scale: [0, 20],
+                    opacity: [1, 0],
+                    duration: 1000,
+                    easing: 'easeOutExpo',
+                    complete: () => burst.remove()
+                });
+            });
+        });
+    </script>
+    <script>
+        // Initialize Lucide icons after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>
