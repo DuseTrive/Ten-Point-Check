@@ -2,6 +2,8 @@
 
 A comprehensive web application for evaluating laptop/PC devices using a standardized 10-point assessment system with integrated database management.
 
+Accesses via: https://dusetrive.github.io/Ten-Point-Check/
+
 ## 🎯 **Project Overview**
 
 This tool helps assess devices for **REUSE**, **DONATE**, or **E-WASTE** decisions based on:
